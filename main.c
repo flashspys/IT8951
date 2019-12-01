@@ -191,14 +191,13 @@ void *connection_handler(void *socket_desc) {
                 printf("rm file %s because corrupted\n", filename);
             }
             if (should_request) {
-                printf("%s: file not found\n", filename);
-
                 client_message[0] = 'D';
 
-                char *request = malloc(read_size + 4);
+                char *request = malloc(read_size + 5);
                 sprintf(request, "||%s||", client_message);
-                write(sock, client_message, read_size); // request for the file
-
+                printf("%s: file not found\n", filename);
+                write(sock, request, strlen(request)); // request for the file
+                free(request);
                 char file_buffer[TRANSFER_READ_SIZE];
                 FILE *fp = fopen(filename, "ab+");
                 while ((read_size = recv(sock, file_buffer, TRANSFER_READ_SIZE, 0)) > 0) {
