@@ -115,6 +115,15 @@ void start_board() {
     pthread_mutex_unlock(&board_mutex);
 }
 
+void stop_board() {
+    pthread_mutex_lock(&board_mutex);
+    buffer_to_write = NULL;
+    IT8951_Cancel();
+    IT8951_started = 0;
+    printf("Board is now stopped\n");
+    pthread_mutex_unlock(&board_mutex);
+}
+
 void *stop_board_loop(void *data) {
     while (1) {
         if (IT8951_started) {
@@ -130,21 +139,12 @@ void *stop_board_loop(void *data) {
     return NULL;
 }
 
-void stop_board() {
-    pthread_mutex_lock(&board_mutex);
-    buffer_to_write = NULL;
-    IT8951_Cancel();
-    IT8951_started = 0;
-    printf("Board is now stopped\n");
-    pthread_mutex_unlock(&board_mutex);
-}
-
 int display_4bpp_filename(char *filename) {
     last_command_time = time(NULL);
-    int started_automatically = 0;
+//    int started_automatically = 0;
     if (!IT8951_started) {
         printf("Update without previous start command. Starting automatically\n");
-        started_automatically = 1;
+//        started_automatically = 1;
         start_board();
     }
 
