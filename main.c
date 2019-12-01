@@ -187,6 +187,8 @@ void *connection_handler(void *socket_desc) {
             if (!should_request) {
                 fclose(test);
                 should_request = display_4bpp_filename(filename);
+                remove(filename);
+                printf("rm file %s because corrupted\n", filename);
             }
             if (should_request) {
                 printf("%s: file not found\n", filename);
