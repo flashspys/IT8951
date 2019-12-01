@@ -142,10 +142,10 @@ int display_4bpp_filename(char *filename) {
     printf("Updating screen for file: %s\n", filename);
     IT8951_Display4BppBuffer();
 
-    if (started_automatically) {
-        printf("Stopping the board because it started automatically\n");
-        stop_board();
-    }
+//    if (started_automatically) {
+//        printf("Stopping the board because it started automatically\n");
+//        stop_board();
+//    }
 
     return 0;
 }
