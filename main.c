@@ -182,7 +182,12 @@ void *connection_handler(void *socket_desc) {
                 }
             }
 
-            int should_request = fopen(filename, "r") == NULL || !display_4bpp_filename(filename);
+            FILE *test = fopen(filename, "r");
+            int should_request = test == NULL;
+            if (!should_request) {
+                fclose(test);
+                should_request = display_4bpp_filename(filename);
+            }
             if (should_request) {
                 printf("%s: file not found\n", filename);
 
