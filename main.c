@@ -133,7 +133,7 @@ int display_4bpp_filename(char *filename) {
 
     printf("Reading file: %s\n", filename);
     if (read_png_file(filename, &width, &height, &color_type, &bit_depth, buffer_to_write)) {
-        retuurn 1;
+        return 1;
     }
     if (width != target_screen_width || height != target_screen_height) {
         printf("Image should be %dx%d but it's %dx%d\n", target_screen_width, target_screen_height, width, height);
@@ -182,7 +182,7 @@ void *connection_handler(void *socket_desc) {
                 }
             }
 
-            bool should_request = fopen(filename, "r") == NULL || !display_4bpp_filename(filename);
+            int should_request = fopen(filename, "r") == NULL || !display_4bpp_filename(filename);
             if (should_request) {
                 printf("%s: file not found\n", filename);
 
