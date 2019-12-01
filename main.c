@@ -115,7 +115,7 @@ void start_board() {
     pthread_mutex_unlock(&board_mutex);
 }
 
-void stop_board_loop(void *data) {
+void *stop_board_loop(void *data) {
     while (1) {
         if (IT8951_started) {
             if (time(NULL) - last_command_time > 30) {
@@ -126,6 +126,8 @@ void stop_board_loop(void *data) {
             sleep(30);
         }
     }
+
+    return NULL;
 }
 
 void stop_board() {
