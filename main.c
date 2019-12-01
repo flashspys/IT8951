@@ -116,8 +116,6 @@ void start_board() {
 }
 
 void stop_board_loop(void *data) {
-    int last_state = 0;
-
     while (1) {
         if (IT8951_started) {
             if (time(NULL) - last_command_time > 30) {
