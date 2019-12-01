@@ -184,14 +184,11 @@ void *connection_handler(void *socket_desc) {
             }
 
             FILE *test = fopen(filename, "r");
-            int should_request = test == NULL;
-            if (!should_request) {
+            if (test != NULL) {
                 fclose(test);
-                should_request = display_4bpp_filename(filename);
-                remove(filename);
-                printf("rm file %s because corrupted\n", filename);
+                display_4bpp_filename(filename);
             }
-            if (should_request) {
+            else {
                 client_message[0] = 'D';
 
                 char *request = malloc(read_size + 5);
