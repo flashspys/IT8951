@@ -7,7 +7,7 @@
 #include <string.h>
 #include <errno.h>
 
-
+pthread_mutex_t board_mutex = PTHREAD_MUTEX_INITIALIZER;
 #define TRANSFER_READ_SIZE 4096 * 4
 
 int IT8951_started = 0;
@@ -15,6 +15,7 @@ uint8_t *buffer_to_write = NULL;
 int target_screen_width = 1872;
 int target_screen_height = 1404;
 int should_revert = 0;
+uint32_t last_command_time = 0;
 
 void abort_(const char * s)
 {
@@ -101,31 +102,51 @@ int read_png_file(char* file_name, int* width_ptr, int* height_ptr, png_byte *co
     return 0;
 }
 
+void stop_board_loop(void *data) {
+    int last_state = 0;
+
+    while (true) {
+        if (IT8951_started) {
+            if (time(NULL) - last_command_time > 30) {
+                stop_board();
+            }
+            sleep(30);
+        } else {
+            sleep(30);
+        }
+    }
+}
+
 void start_board() {
+    pthread_mutex_lock(&board_mutex);
     if(!(buffer_to_write = IT8951_Init(target_screen_width, target_screen_height, should_revert))) {
         printf("IT8951_Init error, exiting\n");
         exit(1);
     } else {
         IT8951_started = 1;
+        last_command_time = time(NULL);
         printf("IT8951 started\n");
     }
+    pthread_mutex_unlock(&board_mutex);
 }
 
 void stop_board() {
+    pthread_mutex_lock(&board_mutex);
     buffer_to_write = NULL;
     IT8951_Cancel();
     IT8951_started = 0;
     printf("Board is now stopped\n");
+    pthread_mutex_unlock(&board_mutex);
 }
 
 int display_4bpp_filename(char *filename) {
+    last_command_time = time(NULL);
     int started_automatically = 0;
     if (!IT8951_started) {
         printf("Update without previous start command. Starting automatically\n");
         started_automatically = 1;
         start_board();
     }
-
 
     png_byte color_type;
     png_byte bit_depth;
@@ -140,7 +161,9 @@ int display_4bpp_filename(char *filename) {
         return 1;
     }
     printf("Updating screen for file: %s\n", filename);
+    pthread_mutex_lock(&board_mutex);
     IT8951_Display4BppBuffer();
+    pthread_mutex_unlock(&board_mutex);
 
 //    if (started_automatically) {
 //        printf("Stopping the board because it started automatically\n");
@@ -288,6 +311,8 @@ int start_server(unsigned short port) {
 int main(int argc, char *argv[])
 {
     should_revert = fopen("reverted", "r") != NULL;
+    pthread_t check_board_on;
+    pthread_create(&check_board_on, NULL, stop_board_loop, NULL);
 
     while (1) {
         start_server(8888);
