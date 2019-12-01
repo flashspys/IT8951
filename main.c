@@ -194,6 +194,9 @@ void *connection_handler(void *socket_desc) {
                 printf("%s: file not found\n", filename);
 
                 client_message[0] = 'D';
+
+                char *request = malloc(read_size + 4);
+                sprintf(request, "||%s||", client_message);
                 write(sock, client_message, read_size); // request for the file
 
                 char file_buffer[TRANSFER_READ_SIZE];
