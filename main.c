@@ -22,31 +22,41 @@ void abort_(const char * s)
     abort();
 }
 
-void read_png_file(char* file_name, int* width_ptr, int* height_ptr, png_byte *color_type_ptr, png_byte *bit_depth_ptr, uint8_t *buffer_to_write)
+int read_png_file(char* file_name, int* width_ptr, int* height_ptr, png_byte *color_type_ptr, png_byte *bit_depth_ptr, uint8_t *buffer_to_write)
 {
     char header[8];    // 8 is the maximum size that can be checked
 
     /* open file and test for it being a png */
     FILE *fp = fopen(file_name, "rb");
-    if (!fp)
+    if (!fp) {
         printf("[read_png_file] File %s could not be opened for reading errno = %d\n", file_name, errno);
+        return 1;
+    }
     fread(header, 1, 8, fp);
-    if (png_sig_cmp(header, 0, 8))
+    if (png_sig_cmp(header, 0, 8)) {
         printf("[read_png_file] File %s is not recognized as a PNG file\n", file_name);
+        return 1;
+    }
 
 
     /* initialize stuff */
     png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 
-    if (!png_ptr)
+    if (!png_ptr) {
         abort_("[read_png_file] png_create_read_struct failed");
+        return 1;
+    }
 
     png_infop info_ptr = png_create_info_struct(png_ptr);
-    if (!info_ptr)
+    if (!info_ptr) {
         abort_("[read_png_file] png_create_info_struct failed");
+        return 1;
+    }
 
-    if (setjmp(png_jmpbuf(png_ptr)))
+    if (setjmp(png_jmpbuf(png_ptr))) {
         abort_("[read_png_file] Error during init_io");
+        return 1;
+    }
 
     png_init_io(png_ptr, fp);
     png_set_sig_bytes(png_ptr, 8);
@@ -62,15 +72,17 @@ void read_png_file(char* file_name, int* width_ptr, int* height_ptr, png_byte *c
     if (*width_ptr != target_screen_width || *height_ptr != target_screen_height) {
         printf("Image should be %dx%d but it's %dx%d\n", target_screen_width, target_screen_height, *width_ptr, *height_ptr);
         fclose(fp);
-        return;
+        return 1;
     }
 
     int number_of_passes = png_set_interlace_handling(png_ptr);
     png_read_update_info(png_ptr, info_ptr);
 
     /* read file */
-    if (setjmp(png_jmpbuf(png_ptr)))
+    if (setjmp(png_jmpbuf(png_ptr))) {
         abort_("[read_png_file] Error during read_image");
+        return 1;
+    }
 
 
     png_bytep *row_pointers = (png_bytep*) malloc(sizeof(png_bytep) * *height_ptr);
@@ -85,6 +97,8 @@ void read_png_file(char* file_name, int* width_ptr, int* height_ptr, png_byte *c
 
     free(row_pointers);
     fclose(fp);
+
+    return 0;
 }
 
 void start_board() {
@@ -104,7 +118,7 @@ void stop_board() {
     printf("Board is now stopped\n");
 }
 
-void display_4bpp_filename(char *filename) {
+int display_4bpp_filename(char *filename) {
     int started_automatically = 0;
     if (!IT8951_started) {
         printf("Update without previous start command. Starting automatically\n");
@@ -118,10 +132,12 @@ void display_4bpp_filename(char *filename) {
     int width, height;
 
     printf("Reading file: %s\n", filename);
-    read_png_file(filename, &width, &height, &color_type, &bit_depth, buffer_to_write);
+    if (read_png_file(filename, &width, &height, &color_type, &bit_depth, buffer_to_write)) {
+        retuurn 1;
+    }
     if (width != target_screen_width || height != target_screen_height) {
         printf("Image should be %dx%d but it's %dx%d\n", target_screen_width, target_screen_height, width, height);
-        return;
+        return 1;
     }
     printf("Updating screen for file: %s\n", filename);
     IT8951_Display4BppBuffer();
@@ -130,6 +146,8 @@ void display_4bpp_filename(char *filename) {
         printf("Stopping the board because it started automatically\n");
         stop_board();
     }
+
+    return 0;
 }
 
 void *connection_handler(void *socket_desc) {
@@ -164,9 +182,8 @@ void *connection_handler(void *socket_desc) {
                 }
             }
 
-            if (fopen(filename, "r") != NULL) {
-                display_4bpp_filename(filename);
-            } else {
+            bool should_request = fopen(filename, "r") == NULL || !display_4bpp_filename(filename);
+            if (should_request) {
                 printf("%s: file not found\n", filename);
 
                 client_message[0] = 'D';
@@ -264,6 +281,7 @@ int start_server(unsigned short port) {
 int main(int argc, char *argv[])
 {
     should_revert = fopen("reverted", "r") != NULL;
+
     while (1) {
         start_server(8888);
         sleep(1);
