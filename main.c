@@ -165,6 +165,7 @@ void *connection_handler(void *socket_desc) {
             } else {
                 start_board();
             }
+            break;
         } else if (strncmp(client_message, "U", 1) == 0) {
             char *filename = client_message + 1; // Offset by one to remove the "U"
             client_message[read_size] = 0;
