@@ -102,21 +102,6 @@ int read_png_file(char* file_name, int* width_ptr, int* height_ptr, png_byte *co
     return 0;
 }
 
-void stop_board_loop(void *data) {
-    int last_state = 0;
-
-    while (true) {
-        if (IT8951_started) {
-            if (time(NULL) - last_command_time > 30) {
-                stop_board();
-            }
-            sleep(30);
-        } else {
-            sleep(30);
-        }
-    }
-}
-
 void start_board() {
     pthread_mutex_lock(&board_mutex);
     if(!(buffer_to_write = IT8951_Init(target_screen_width, target_screen_height, should_revert))) {
@@ -128,6 +113,21 @@ void start_board() {
         printf("IT8951 started\n");
     }
     pthread_mutex_unlock(&board_mutex);
+}
+
+void stop_board_loop(void *data) {
+    int last_state = 0;
+
+    while (1) {
+        if (IT8951_started) {
+            if (time(NULL) - last_command_time > 30) {
+                stop_board();
+            }
+            sleep(30);
+        } else {
+            sleep(30);
+        }
+    }
 }
 
 void stop_board() {
