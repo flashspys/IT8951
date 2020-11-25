@@ -6,12 +6,11 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include "miniGUI.h"
 
 #define CS 				8
 #define HRDY 	        24
 #define RESET 	        17
-#define VCOM			1500 //e.g. -1.53 = 1530 = 0x5FA
+#define VCOM			1470 //e.g. -1.53 = 1530 = 0x5FA
 
 //prototype of structure
 //structure prototype 1
@@ -20,7 +19,7 @@ typedef struct IT8951LdImgInfo
     uint16_t usEndianType; //little or Big Endian
     uint16_t usPixelFormat; //bpp
     uint16_t usRotate; //Rotate mode
-    uint32_t ulStartFBAddr; //Start address of source Frame buffer
+    size_t ulStartFBAddr; //Start address of source Frame buffer
     uint32_t ulImgBufBaseAddr;//Base address of target image buffer
     
 }IT8951LdImgInfo;
@@ -126,30 +125,11 @@ typedef struct
 #define MCSR (MCSR_BASE_ADDR  + 0x0000)
 #define LISAR (MCSR_BASE_ADDR + 0x0008)
 
-uint8_t IT8951_Init(void);
+#define TEST_REMOTE 1
+
+uint8_t* IT8951_Init(int expected_width, int expected_height, int should_revert);
 void IT8951_Cancel(void);
-void IT8951DisplayExample(void);
-void IT8951DisplayExample2(void);
-void IT8951Display1bppExample2(void);
-void IT8951DisplayExample3(void);
-void IT8951_GUI_Example(void);
-void IT8951_BMP_Example(uint32_t x, uint32_t y,char *path);
-
-uint16_t IT8951ReadReg(uint16_t usRegAddr);
-void IT8951SetImgBufBaseAddr(uint32_t ulImgBufAddr);
-void LCDWaitForReady(void);
-void GetIT8951SystemInfo(void* pBuf);
-void gpio_i80_16b_cmd_out(uint16_t usCmd);
-void GPIO_Configuration_Out(void);
-void GPIO_Configuration_In(void);
-
-void IT8951DisplayClear(void);
-
-//uint16_t IT8951ReadReg(uint16_t usRegAddr);
-void IT8951WriteReg(uint16_t usRegAddr,uint16_t usValue);
-
-uint16_t IT8951GetVCOM(void);
-void IT8951SetVCOM(uint16_t vcom);
+void IT8951_Display4BppBuffer();
 
 #endif
 
