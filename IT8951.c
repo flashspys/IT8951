@@ -347,7 +347,7 @@ uint8_t *IT8951_Init(int expected_width, int expected_height, int reverted)
 	bcm2835_spi_begin();
 	bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);   		//default
 	bcm2835_spi_setDataMode(BCM2835_SPI_MODE0);               		//default
-	bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_16);		//default
+	bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_4);		//default
 	
 	bcm2835_gpio_fsel(CS, BCM2835_GPIO_FSEL_OUTP);  
 	bcm2835_gpio_fsel(HRDY, BCM2835_GPIO_FSEL_INPT);
@@ -387,7 +387,7 @@ uint8_t *IT8951_Init(int expected_width, int expected_height, int reverted)
 
 
     //Setting Load image information
-    stLdImgInfo.ulStartFBAddr    = (uint32_t)gpFrameBuf;
+    stLdImgInfo.ulStartFBAddr    = (size_t)gpFrameBuf;
     stLdImgInfo.usEndianType     = IT8951_LDIMG_B_ENDIAN;
     stLdImgInfo.usPixelFormat    = IT8951_4BPP;
     stLdImgInfo.usRotate         = reverted ? IT8951_ROTATE_180 : IT8951_ROTATE_0;

@@ -25,7 +25,7 @@ void abort_(const char * s)
 
 int read_png_file(char* file_name, int* width_ptr, int* height_ptr, png_byte *color_type_ptr, png_byte *bit_depth_ptr, uint8_t *buffer_to_write)
 {
-    char header[8];    // 8 is the maximum size that can be checked
+    unsigned char header[8];    // 8 is the maximum size that can be checked
 
     /* open file and test for it being a png */
     FILE *fp = fopen(file_name, "rb");
